@@ -10,6 +10,7 @@ var VSHADER_SOURCE =`
 
     varying vec2 v_TexCoord;   // Pass to fragment shader
     varying vec3 v_Normal;    
+    varying vec4 v_VertPos;
 
     varying vec2 v_UV;
     uniform mat4 u_ModelMatrix;
@@ -22,6 +23,7 @@ var VSHADER_SOURCE =`
         v_UV = a_UV;
         v_TexCoord = a_TexCoord;
         v_Normal = a_Normal;
+        v_VertPos = u_ModelMatrix * a_Position;
 
     }`;
 
@@ -35,8 +37,11 @@ var FSHADER_SOURCE =`
     varying vec2 v_TexCoord;
     varying vec2 v_UV;
     varying vec3 v_Normal;    
+    varying vec4 v_VertPos;
 
     uniform int u_whichTexture;
+    uniform vec3 u_lightPos;
+
     
     void main(){
     if(u_whichTexture == -3){                           // Ground texture  
@@ -64,6 +69,17 @@ var FSHADER_SOURCE =`
         gl_FragColor = vec4(1.0, 0.2, 0.2, 1.0);
     }
 
+    vec3 lightVector =  vec3(v_VertPos) - u_lightPos;
+    float r = length(lightVector);
+
+    // vec3 L = normalize(lightVector);
+    // vec3 N = normalize(v_Normal);
+    // float nDotL = max(dot(L, N), 0.0);
+    // gl_FragColor = gl_FragColor * nDotL;
+    // gl_FragColor.a = 1.0;
+
+    gl_FragColor = vec4(vec3(gl_FragColor)/ (r*r), 1);
+
 }`;
 
 // Constants
@@ -75,6 +91,7 @@ let canvas;
 let gl;
 let a_Position;
 let a_UV;
+let a_Normal;
 let u_FragColor;
 let u_Size;
 let u_ModelMatrix;
@@ -83,7 +100,8 @@ let u_ViewMatrix;
 let u_GlobalRotateMatrix; 
 let u_Sampler0;
 let u_Sampler1;
-let u_whichTexture
+let u_whichTexture;
+let u_lightPos;
 let texture;
 
 var map = [
@@ -137,6 +155,7 @@ let g_MagentaAngle = 0;
 let g_BodyAngle = 0;
 
 let g_normalOn = true;
+let g_lightPos = [0, 1, -2];
 
 // Mouse control variables
 let isMouseControlled = false;
@@ -175,6 +194,7 @@ var g_magentaAnimation = false;
 
 function tick(){
     g_seconds = (performance.now() / 1000.0 - g_startTime) * 1.5;
+    updateAnimationAngles();
     renderScene();   
     requestAnimationFrame(tick);
 
@@ -282,6 +302,12 @@ function connectVariablesToGLSL(){
         return false;
     }
 
+    u_lightPos = gl.getUniformLocation(gl.program, 'u_lightPos'); 
+    if(!u_lightPos){
+        console.log('Failed to get the storage location of u_lightPos');
+        return false;
+    }
+
     var identityM = new Matrix4();
     gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
     gl.uniformMatrix4fv(u_ViewMatrix, false, identityM.elements);
@@ -354,6 +380,26 @@ function addActionForHTMLUI(){
     document.getElementById('normalOffButton').onclick = function() {
         g_normalOn = false
     }
+    
+    document.getElementById('lightSlideX').addEventListener('mousemove', function(ev) {
+        if(ev.buttons == 1){
+            g_lightPos[0] = this.value / 100;
+            renderScene
+        }
+    });
+    document.getElementById('lightSlideY').addEventListener('mousemove', function(ev) {
+        if(ev.buttons == 1){
+            g_lightPos[1] = this.value / 100;
+            renderScene
+        }
+    });
+    document.getElementById('lightSlideZ').addEventListener('mousemove', function(ev) {
+        if(ev.buttons == 1){
+            g_lightPos[2] = this.value / 100;
+            renderScene
+        }
+    });
+
     canvas.addEventListener('mousedown', (event) => {
         // Set mouse control state to true when mouse is pressed down
         isMouseControlled = true;
@@ -406,16 +452,17 @@ function addActionForHTMLUI(){
     });
 }
 
-// function updateAnimationAngles(){
-//     if(g_yellowAnimation){
-//         g_yellowAngle = 45 * Math.sin(g_seconds);
+function updateAnimationAngles(){
+    // if(g_yellowAnimation){
+    //     g_yellowAngle = 45 * Math.sin(g_seconds);
 
-//     }
-//     if(g_magentaAnimation){
-//         g_MagentaAngle = 45 * Math.sin(2.5 * g_seconds);
-//     }
+    // }
+    // if(g_magentaAnimation){
+    //     g_MagentaAngle = 45 * Math.sin(2.5 * g_seconds);
+    // }
+    g_lightPos[0] = 2 * Math.cos(g_seconds);
 
-// }
+}
 
 function keydown(ev){
 
@@ -477,6 +524,17 @@ function renderScene(){
     // Clear <canvas>
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     
+
+    gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+
+    var light = new Cube();
+    light.color = [2, 2, 0, 1];
+    light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]);
+    light.matrix.scale(0.1, 0.1, 0.1);
+    light.matrix.translate(0.5, 0.5, 0.5);
+
+    light.render();
+
     var ground = new Cube();
     ground.textureNum = -2;
     ground.color = [0.2, 0.7, 0.2, 1.0];
@@ -492,7 +550,7 @@ function renderScene(){
     }
     sky.color = [0.3, 0.45, 0.9, 1.0];
     sky.matrix.translate(0, -1, 0);
-    sky.matrix.scale(-50, -50, -50);
+    sky.matrix.scale(-5, -5, -5);
     sky.matrix.translate(-0.5, -0.5, -0.5);
     sky.render();
 
@@ -534,6 +592,10 @@ function renderScene(){
     magenta.render();
 
     var sphere = new Sphere();  
+    if(g_normalOn){
+        sphere.textureNum = -3;
+    }
+    sphere.matrix.scale(1, 1, -1)
     sphere.render();
 
     // var box = new Cube();
