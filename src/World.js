@@ -97,7 +97,7 @@ var FSHADER_SOURCE =`
     vec3 ambient = vec3(gl_FragColor) * 0.3;
 
     if(u_lightOn){
-        if(u_whichTexture == -3){
+        if(u_whichTexture <= 0){
             gl_FragColor = vec4(diffuse + ambient + specular, 1.0);
         }
         else{
@@ -352,6 +352,8 @@ function connectVariablesToGLSL(){
         return false;
     }
 
+    gl.uniform1f(u_lightOn, g_lightOn);
+
     var identityM = new Matrix4();
     gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
     gl.uniformMatrix4fv(u_ViewMatrix, false, identityM.elements);
@@ -588,13 +590,13 @@ function renderScene(){
 
     light.render();
 
-    var ground = new Cube();
-    ground.textureNum = -2;
-    ground.color = [0.2, 0.7, 0.2, 1.0];
-    ground.matrix.translate(0, -0.75, 0);
-    ground.matrix.scale(32, 0, 32);
-    ground.matrix.translate(-0.5, 0, -0.5);
-    ground.render();
+    // var ground = new Cube();
+    // ground.textureNum = -2;
+    // ground.color = [0.2, 0.7, 0.2, 1.0];
+    // ground.matrix.translate(0, -0.75, 0);
+    // ground.matrix.scale(32, 0.01, 32);
+    // ground.matrix.translate(-0.5, 0, -0.5);
+    // ground.render();
 
     var sky = new Cube();
     // sky.textureNum = -2;
@@ -603,7 +605,7 @@ function renderScene(){
     }
     sky.color = [0.3, 0.45, 0.9, 1.0];
     sky.matrix.translate(0, -1, 0);
-    sky.matrix.scale(-5, 5, 5);
+    sky.matrix.scale(-5, -5, 5);
     sky.matrix.translate(-0.5, -0.5, -0.5);
     sky.render();
 
