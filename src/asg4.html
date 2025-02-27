@@ -52,7 +52,12 @@ Note to Graders:
 
     <p>
       Light Color
-    <input type="color" id="lightColor" value="#ffffff" />
+    <!-- <input type="color" id="lightColor" value="#ffffff" /> -->
+    </p>
+    <label>Red: <input type="range" id="lightRed" min="0" max="255" value="255"></label>
+    <label>Green: <input type="range" id="lightGreen" min="0" max="255" value="255"></label>
+    <label>Blue: <input type="range" id="lightBlue" min="0" max="255" value="255"></label>
+
     <!-- <input type="range" min="-250" max="250" class="slider" id="lightSlideZ" /> -->
 
     <script src="../lib/webgl-utils.js"></script>

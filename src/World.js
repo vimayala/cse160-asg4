@@ -17,9 +17,12 @@ var VSHADER_SOURCE =`
     uniform mat4 u_GlobalRotateMatrix;      // Setting global rotation
     uniform mat4 u_ViewMatrix;              // Set by LookAt
     uniform mat4 u_ProjectionMatrix;        // Set by GL perspective command...eventually
+    // uniform mat4 u_NormalMatrix;
+
     void main(){
-        // gl_Position = u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
         gl_Position = u_ProjectionMatrix * u_ViewMatrix* u_GlobalRotateMatrix * u_ModelMatrix * a_Position;
+        // vec3 normal = normalize(vec3(u_NormalMatrix * a_Normal));
+        // v_Normal = normalize(vec3(u_NormalMatrix * vec4(a_Normal, 1)));
         v_UV = a_UV;
         v_TexCoord = a_TexCoord;
         v_Normal = a_Normal;
@@ -43,8 +46,8 @@ var FSHADER_SOURCE =`
     uniform vec3 u_lightPos;
     uniform vec3 u_cameraPos;
     uniform bool u_lightOn;
+    uniform vec3 u_lightColor; // New light color uniform
 
-    
     void main(){
     if(u_whichTexture == -3){                           // Ground texture  
         gl_FragColor = vec4((v_Normal + 1.0)/2.0, 1.0);
@@ -81,9 +84,6 @@ var FSHADER_SOURCE =`
     gl_FragColor = gl_FragColor * nDotL;
     gl_FragColor.a = 1.0;
 
-    // vec3 diffuse = vec3(gl_FragColor) * nDotL;
-    // vec3 ambient = vec3(gl_FragColor) * 0.3;
-
     // Reflection
     vec3 R = reflect(-L, N);
 
@@ -93,7 +93,12 @@ var FSHADER_SOURCE =`
     // Specular
     float specular = pow(max(dot(R, E), 0.0), 10.0);
 
-    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
+    // vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
+    // vec3 ambient = vec3(gl_FragColor) * 0.3;
+
+    vec3 diffuse = vec3(gl_FragColor) * nDotL * u_lightColor * 0.7;
+    // vec3 diffuse = vec3(gl_FragColor) * nDotL * vec3(0.0,1.0,0.0) * 0.7;
+
     vec3 ambient = vec3(gl_FragColor) * 0.3;
 
     // }
@@ -123,10 +128,6 @@ var FSHADER_SOURCE =`
         }
     }
 
-
-    // Light falloff
-    // gl_FragColor = vec4(vec3(gl_FragColor)/ (r*r), 1);
-
 }`;
 
 // Constants
@@ -145,11 +146,13 @@ let u_ModelMatrix;
 let u_ProjectionMatrix;
 let u_ViewMatrix;
 let u_GlobalRotateMatrix; 
+// let u_NormalMatrix;
 let u_Sampler0;
 let u_Sampler1;
 let u_whichTexture;
 let u_lightPos;
 let u_cameraPos;
+let u_lightColor;
 let lightOn;
 let texture;
 
@@ -171,6 +174,9 @@ let g_BodyAngle = 0;
 let g_normalOn = true;
 let g_lightPos = [0, 1, -2];
 let g_lightOn = true;
+
+var lightColor = [1.0, 1.0, 1.0]; // Default white light
+
 
 // Mouse control variables
 let isMouseControlled = false;
@@ -335,12 +341,28 @@ function connectVariablesToGLSL(){
         return false;
     }
 
+    // u_NormalMatrix = gl.getUniformLocation(gl.program, 'u_NormalMatrix');
+    // if(!u_NormalMatrix){
+    //     console.log('Failed to get the storage location of u_NormalMatrix');
+    //     return false;
+    // }
+
+    u_lightColor = gl.getUniformLocation(gl.program, 'u_lightColor');
+    if(!u_lightColor){
+        console.log('Failed to get the storage location of u_lightColor');
+        return false;
+    }
+
     gl.uniform1f(u_lightOn, g_lightOn);
+    // gl.uniform3f(u_lightColor, 1, 0, 0);
 
     var identityM = new Matrix4();
+
     gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
     gl.uniformMatrix4fv(u_ViewMatrix, false, identityM.elements);
     gl.uniformMatrix4fv(u_ProjectionMatrix, false, identityM.elements);
+    // gl.uniformMatrix4fv(u_NormalMatrix, false, identityM.elements);
+
 
 }
 
@@ -416,6 +438,21 @@ function addActionForHTMLUI(){
     document.getElementById('lightOffButton').onclick = function() {
         g_lightOn = false
     }
+
+
+    document.getElementById("lightRed").addEventListener("input", function(event) {
+        lightColor[0] = event.target.value / 255.0;
+        gl.uniform3f(u_lightColor, lightColor[0], lightColor[1], lightColor[2]);
+    });
+
+    document.getElementById("lightGreen").addEventListener("input", function(event) {
+        lightColor[1] = event.target.value / 255.0;
+        gl.uniform3f(u_lightColor, lightColor[0], lightColor[1], lightColor[2]);
+    });
+    document.getElementById("lightBlue").addEventListener("input", function(event) {
+        lightColor[2] = event.target.value / 255.0;
+        gl.uniform3f(u_lightColor, lightColor[0], lightColor[1], lightColor[2]);
+    });
 
     document.getElementById('bodySlide').addEventListener('mousemove', function(ev) {
         g_yellowAngle = this.value;
@@ -543,6 +580,8 @@ function keydown(ev){
 var projMat = new Matrix4();
 var viewMat = new Matrix4();
 var globalRotMat = new Matrix4().rotate(g_globalAngleX, 1, 0, 0) .rotate(g_globalAngleY, 0, 1, 0) .rotate(g_globalAngleZ, 0, 0, 1);
+var modelMatrix = new Matrix4();
+var normalMatrix = new Matrix4();
 
 function renderScene(){
     var startTime = performance.now();
@@ -551,6 +590,8 @@ function renderScene(){
     //                      fov,   aspect,                 near, far
     projMat.setPerspective(g_Camera.fov, canvas.width / canvas.height, 1, 100);
     gl.uniformMatrix4fv(u_ProjectionMatrix, false, projMat.elements);
+
+    
 
     //                  eyes,       at,          up
     viewMat.setLookAt(g_Camera.eye.elements[0], g_Camera.eye.elements[1], g_Camera.eye.elements[2],     
@@ -573,6 +614,10 @@ function renderScene(){
     gl.uniform3f(u_lightPos, g_lightPos[0], g_lightPos[1], g_lightPos[2]);
 
     gl.uniform1i(u_lightOn, g_lightOn);
+    
+    gl.uniform3f(u_lightColor,lightColor[0], lightColor[1], lightColor[2]);
+    // console.log("Color: " + lightColor[0] + " " + lightColor[1] + " " + lightColor[2]);
+
 
     var light = new Cube();
     light.color = [2, 2, 0, 1];
@@ -611,6 +656,7 @@ function renderScene(){
     red.matrix.translate(-0.25, -0.75, 0.0);
     red.matrix.rotate(-5, 1, 0, 0);
     red.matrix.scale(0.5, 0.3, 0.5);
+    red.normalMatrix.setInverseOf(red.matrix).transpose();
     red.render();
 
     var yellow = new Cube();
@@ -623,6 +669,8 @@ function renderScene(){
     var yellowCoordMatrix = new Matrix4(yellow.matrix);
     yellow.matrix.scale(0.25, 0.7, 0.5);
     yellow.matrix.translate(-0.5, 0.0, 0.0);
+    yellow.normalMatrix.setInverseOf(yellow.matrix).transpose();
+
     yellow.render();
 
     var magenta = new Cube();
@@ -848,24 +896,24 @@ function renderScene(){
     
 }
 
-function drawMap(){
-    for (var x = 0; x < map.length; x++) {
-        for (var z = 0; z < map[x].length; z++) {
-            // If the value at the current map position is < 0, create a wall
-            if (map[x][z] > 0) {
-                var height = map[x][z];
-                for (var y = 0; y < height; y++) {
-                    var w = new Cube();
-                    w.textureNum = 0;  
-                    w.matrix.scale(0.75, 0.75, 0.75);
-                    w.color = [0.5, 0.5, 0.5, 1.0];  
-                    w.matrix.translate(x - map.length / 2, y - 1.0, z - map.length / 2);            // Assumes squares, centers blocks in grid
-                    w.renderFast();  
-                }
-            }
-        }
-    }
-}
+// function drawMap(){
+//     for (var x = 0; x < map.length; x++) {
+//         for (var z = 0; z < map[x].length; z++) {
+//             // If the value at the current map position is < 0, create a wall
+//             if (map[x][z] > 0) {
+//                 var height = map[x][z];
+//                 for (var y = 0; y < height; y++) {
+//                     var w = new Cube();
+//                     w.textureNum = 0;  
+//                     w.matrix.scale(0.75, 0.75, 0.75);
+//                     w.color = [0.5, 0.5, 0.5, 1.0];  
+//                     w.matrix.translate(x - map.length / 2, y - 1.0, z - map.length / 2);            // Assumes squares, centers blocks in grid
+//                     w.renderFast();  
+//                 }
+//             }
+//         }
+//     }
+// }
 
 // Send text to HTML, used for duration of renderScene in this files 
 function sendTextToHTML(text, htmlID){
