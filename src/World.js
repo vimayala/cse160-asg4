@@ -96,10 +96,10 @@ var FSHADER_SOURCE =`
     // vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
     // vec3 ambient = vec3(gl_FragColor) * 0.3;
 
-    vec3 diffuse = vec3(gl_FragColor) * nDotL * u_lightColor * 0.7;
-    // vec3 diffuse = vec3(gl_FragColor) * nDotL * vec3(0.0,1.0,0.0) * 0.7;
+    vec3 diffuse = vec3(gl_FragColor) * nDotL * u_lightColor * 0.8;
+    // vec3 diffuse = vec3(gl_FragColor) * nDotL * vec3(0.0,1.0,0.0) * 0.2;
 
-    vec3 ambient = vec3(gl_FragColor) * 0.3;
+    vec3 ambient = vec3(gl_FragColor) * 0.7;
 
     // }
     if (u_lightOn) {
@@ -454,10 +454,10 @@ function addActionForHTMLUI(){
         gl.uniform3f(u_lightColor, lightColor[0], lightColor[1], lightColor[2]);
     });
 
-    document.getElementById('bodySlide').addEventListener('mousemove', function(ev) {
-        g_yellowAngle = this.value;
-        renderScene();
-    });
+    // document.getElementById('bodySlide').addEventListener('mousemove', function(ev) {
+    //     g_yellowAngle = this.value;
+    //     renderScene();
+    // });
     
     document.getElementById('lightSlideX').addEventListener('mousemove', function(ev) {
         if(ev.buttons == 1){
