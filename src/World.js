@@ -96,15 +96,41 @@ var FSHADER_SOURCE =`
     vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
     vec3 ambient = vec3(gl_FragColor) * 0.3;
 
-    if(u_lightOn){
-        if(u_whichTexture <= 0){
+    // if(u_lightOn){
+    //     if(u_whichTexture <= 0){
+    //         gl_FragColor = vec4(diffuse + ambient + specular, 1.0);
+    //     }
+    //     else{
+    //         gl_FragColor = vec4(diffuse + ambient, 1.0);
+    //     }
+
+    // }
+    if (u_lightOn) {
+        if (u_whichTexture <= 0) {
             gl_FragColor = vec4(diffuse + ambient + specular, 1.0);
-        }
-        else{
+        } else {
             gl_FragColor = vec4(diffuse + ambient, 1.0);
         }
-
+        }
+    else {
+        // If lighting is off, copied from above
+        if (u_whichTexture == -3) {  
+            gl_FragColor = vec4((v_Normal + 1.0) / 2.0, 1.0);
+        } else if (u_whichTexture == -2) {  
+            gl_FragColor = u_FragColor;
+        } else if (u_whichTexture == -1) {  
+            gl_FragColor = vec4(v_TexCoord, 1.0, 1.0);
+        } else if (u_whichTexture == 0) {  
+            if (abs(v_Normal.y) > 0.5) {
+                gl_FragColor = texture2D(u_Sampler1, v_TexCoord);
+            } else {
+                gl_FragColor = texture2D(u_Sampler0, v_TexCoord);
+            }
+        } else {
+            gl_FragColor = vec4(1.0, 0.2, 0.2, 1.0);
+        }
     }
+
 
     // Light falloff
     // gl_FragColor = vec4(vec3(gl_FragColor)/ (r*r), 1);
