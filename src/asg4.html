@@ -19,15 +19,21 @@ Note to Graders:
       Please use a browser that supports the "canvas" feature
     </canvas>
 
-    <!-- <h3> -->
-      <!-- Canvas Color: -->
-    <!-- </h2> -->
-  <!-- </h3> -->
     <p id = "numdot">XXX</p>
+
+    <label for="bodySlide">Move Joint</label>
+    <input type="range" min="-180" max="180" value="0" class="slider" id="bodySlide">
+    <p></p>
+    Animation:
+    <button type="button" id="animateLegButtonON">ON</button>
+    <button type="button" id="animateLegButtonOFF">OFF</button> 
+      
+    <p></p>
 
     <button type="button" id="lightOnButton">Light On</button>
     <button type="button" id="lightOffButton">Light Off</button>
     
+    <p></p>
 
     <button type="button" id="normalOnButton">Normal On</button>
     <button type="button" id="normalOffButton">Normal Off</button>
@@ -44,9 +50,10 @@ Note to Graders:
       Light Z
     <input type="range" min="-250" max="250" class="slider" id="lightSlideZ" />
 
-
-
-
+    <p>
+      Light Color
+    <input type="color" id="lightColor" value="#ffffff" />
+    <!-- <input type="range" min="-250" max="250" class="slider" id="lightSlideZ" /> -->
 
     <script src="../lib/webgl-utils.js"></script>
     <script src="../lib/webgl-debug.js"></script>

@@ -416,6 +416,11 @@ function addActionForHTMLUI(){
     document.getElementById('lightOffButton').onclick = function() {
         g_lightOn = false
     }
+
+    document.getElementById('bodySlide').addEventListener('mousemove', function(ev) {
+        g_yellowAngle = this.value;
+        renderScene();
+    });
     
     document.getElementById('lightSlideX').addEventListener('mousemove', function(ev) {
         if(ev.buttons == 1){
@@ -572,7 +577,7 @@ function renderScene(){
     var light = new Cube();
     light.color = [2, 2, 0, 1];
     light.matrix.translate(g_lightPos[0], g_lightPos[1], g_lightPos[2]);
-    light.matrix.scale(-0.1, -0.1, -0.1);
+    light.matrix.scale(0.1, 0.1, 0.1);
     light.matrix.translate(0.5, 0.5, 0.5);
 
     light.render();
@@ -633,11 +638,11 @@ function renderScene(){
     magenta.matrix.translate(-0.5, 0.0, -0.001);
     magenta.render();
 
-    // var sphere = new Sphere();  
-    // if(g_normalOn){
-    //     sphere.textureNum = -3;
-    // }
-    // sphere.matrix.scale(1, 1, -1)
+    var sphere = new Sphere();  
+    if(g_normalOn){
+        sphere.textureNum = -3;
+    }
+    sphere.matrix.scale(1, 1, 1)
     // sphere.render();
 
     // var pup = new Dog();
