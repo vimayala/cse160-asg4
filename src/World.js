@@ -640,8 +640,8 @@ function renderScene(){
         sky.textureNum = -3;
     }
     sky.color = [0.3, 0.45, 0.9, 1.0];
-    sky.matrix.translate(0, -1, 0);
-    sky.matrix.scale(-5, -5, -5);
+    sky.matrix.translate(0.75, 2, 0);
+    sky.matrix.scale(-10, -10, -10);
     sky.matrix.translate(-0.5, -0.5, -0.5);
     sky.render();
 

@@ -3,8 +3,8 @@ Victoria Ayala
 vimayala@ucsc.edu
 
 Note to Graders:
-
-
+  No spotlight implemented.
+  Couldn't fully implement the lighting normals on cube angle changes :/ used the textbook but kept getting errors.
 -->
 
 <!DOCTYPE html>
@@ -21,49 +21,44 @@ Note to Graders:
 
     <p id = "numdot">XXX</p>
 
-    <!-- <label for="bodySlide">Move Joint</label>
-    <input type="range" min="-180" max="180" value="0" class="slider" id="bodySlide"> -->
     <p></p>
-    Dog Walking Animation:
+      Dog Walking Animation:
     <button type="button" id="animateDogON">ON</button>
     <button type="button" id="animateDogOFF">OFF</button> 
       
     <p></p>
-    Turn Light On/Off:
+      Turn Light On/Off:
     <button type="button" id="lightOnButton">Light On</button>
     <button type="button" id="lightOffButton">Light Off</button>
     
     <p></p>
-    Start/Stop Light Movement:
+      Start/Stop Light Movement:
     <button type="button" id="lightMovementButton">Auto Moving Light</button>
-    <!-- <button type="button" id="lightOffButton">Light Off</button> -->
     
     <p></p>
-    Turn Normal On/Off:
+      Turn Normal On/Off:
     <button type="button" id="normalOnButton">Normal On</button>
     <button type="button" id="normalOffButton">Normal Off</button>
     
-    <!-- <p>
-    Move Light: -->
     <p>
       Light X
-    <input type="range" min="-250" max="250" class="slider" id="lightSlideX" />
+    <input type="range" min="-450" max="600" class="slider" id="lightSlideX" />
 
       Light Y
-    <input type="range" min="-350" max="350" class="slider" id="lightSlideY" />
+    <input type="range" min="-450" max="750" class="slider" id="lightSlideY" />
 
       Light Z
-    <input type="range" min="-250" max="250" class="slider" id="lightSlideZ" />
+    <input type="range" min="-550" max="550" class="slider" id="lightSlideZ" />
 
     <p>
       Light Color Adjustments:
-    <!-- <input type="color" id="lightColor" value="#ffffff" /> -->
     </p>
-    <label>Red: <input type="range" id="lightRed" min="0" max="255" value="255"></label>
-    <label>Green: <input type="range" id="lightGreen" min="0" max="255" value="255"></label>
-    <label>Blue: <input type="range" id="lightBlue" min="0" max="255" value="255"></label>
-
-    <!-- <input type="range" min="-250" max="250" class="slider" id="lightSlideZ" /> -->
+      Red: 
+    <input type="range" id="lightRed" min="0" max="255" value="255"></label>
+      Green: 
+    <input type="range" id="lightGreen" min="0" max="255" value="255"></label>
+      Blue: 
+    <input type="range" id="lightBlue" min="0" max="255" value="255"></label>
 
     <script src="../lib/webgl-utils.js"></script>
     <script src="../lib/webgl-debug.js"></script>
